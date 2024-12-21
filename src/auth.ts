@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const appClientId = process.env.APP_CLIENT_ID || '';
+const clientId = process.env.CLIENT_ID || '';
 const redirectUri = process.env.REDIRECT_URI || 'io.elaway.no.app://auth.elaway.io/ios/io.elaway.no.app/callback';
 const oauthScope = "openid profile email";
 const state = "randomstate";
@@ -67,7 +67,7 @@ async function getAuthorizationCode(page: Page): Promise<string | null> {
 async function exchangeCodeForIdAndAuthToken(code: string): Promise<IdTokenResponse> {
   const response = await axios.post(elawayTokenUrl, {
     grant_type: "authorization_code",
-    client_id: appClientId,
+    client_id: clientId,
     redirect_uri: redirectUri,
     code: code
   }, {
@@ -149,7 +149,7 @@ function loadTokens(): StoredElawayToken | null {
 async function startOauth(): Promise<ElawayTokenResponse | null> {
   let tokenResponse: ElawayTokenResponse | null = null;
   let accessIdResponse: null | IdTokenResponse = null;
-  const authUrl = `${elawayAuthorizationUrl}?response_type=code&client_id=${encodeURIComponent(appClientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(oauthScope)}&state=${encodeURIComponent(state)}`;
+  const authUrl = `${elawayAuthorizationUrl}?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(oauthScope)}&state=${encodeURIComponent(state)}`;
 
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
@@ -164,7 +164,6 @@ async function startOauth(): Promise<ElawayTokenResponse | null> {
 
     const code = await getAuthorizationCode(page);
     if (code) {
-      console.log("Fann autorisasjonskode:", code);
       await browser.close();
 
       accessIdResponse = await exchangeCodeForIdAndAuthToken(code);
@@ -173,7 +172,6 @@ async function startOauth(): Promise<ElawayTokenResponse | null> {
 
     }
   } catch (error) {
-    console.error("Feil ved handtering:", error);
   } finally {
     await browser.close();
   }
